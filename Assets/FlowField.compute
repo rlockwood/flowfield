@@ -1,0 +1,187 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel PathSolve
+
+struct pathInfo
+{
+	uint toggle;
+	int xDir;
+	int yDir;
+	uint cost;
+};
+
+StructuredBuffer<uint> difficultyBuffer;
+RWStructuredBuffer<pathInfo> pathBufferFrom;
+RWStructuredBuffer<pathInfo> pathBufferTo;
+RWStructuredBuffer<int> unfulfilledBuffer;
+
+uint flowBufferWidth;
+uint flowBufferHeight;
+uint activePath;
+
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> Result;
+
+uint flowCoord(uint2 coords)
+{
+	return coords.x + coords.y * flowBufferWidth;
+}
+
+[numthreads(8,8,1)]
+void PathSolve (uint2 id : SV_DispatchThreadID)
+{
+	uint coord = flowCoord(id);
+
+	if(difficultyBuffer[coord] > 0 && pathBuffer[coord].toggle != activePath)
+	{
+		int currentShortestPath = -1;
+		int currentDirX = 0;
+		int currentDirY = 0;
+
+		int candidatePathLength = 0;
+		int candidateCoord = 0;
+		bool pathFound = false;
+
+		if(id.y > 0)
+		{
+			if(id.x > 0)
+			{
+				candidateCoord = coord - 1 - flowBufferWidth;
+				if(difficultyBuffer[candidateCoord] > 0 && pathBuffer[candidateCoord].toggle == activePath)
+				{
+					candidatePathLength = pathBuffer[candidateCoord].cost + 14 * difficultyBuffer[candidateCoord];
+					if(currentShortestPath == -1 || candidatePathLength < currentShortestPath)
+					{
+						pathFound = true;
+						currentShortestPath = candidatePathLength;
+						currentDirX = -1;
+						currentDirY = -1;
+					}
+				}
+			}
+
+			candidateCoord = coord - flowBufferWidth;
+			if(difficultyBuffer[candidateCoord] > 0 && pathBuffer[candidateCoord].toggle == activePath)
+			{
+				candidatePathLength = pathBuffer[candidateCoord].cost + 10 * difficultyBuffer[candidateCoord];
+				if(currentShortestPath == -1 || candidatePathLength < currentShortestPath)
+				{
+					pathFound = true;
+					currentShortestPath = candidatePathLength;
+					currentDirX = 0;
+					currentDirY = -1;
+				}
+			}
+
+			if(id.x < flowBufferWidth - 1)
+			{
+				candidateCoord = coord + 1 - flowBufferWidth;
+				if(difficultyBuffer[candidateCoord] > 0 && pathBuffer[candidateCoord].toggle == activePath)
+				{
+					candidatePathLength = pathBuffer[candidateCoord].cost + 14 * difficultyBuffer[candidateCoord];
+					if(currentShortestPath == -1 || candidatePathLength < currentShortestPath)
+					{
+						pathFound = true;
+						currentShortestPath = candidatePathLength;
+						currentDirX = 1;
+						currentDirY = -1;
+					}
+				}
+			}
+		}
+
+		if(id.x > 0)
+		{
+			candidateCoord = coord - 1;
+			if(difficultyBuffer[candidateCoord] > 0 && pathBuffer[candidateCoord].toggle == activePath)
+			{
+				candidatePathLength = pathBuffer[candidateCoord].cost + 10 * difficultyBuffer[candidateCoord];
+				if(currentShortestPath == -1 || candidatePathLength < currentShortestPath)
+				{
+					pathFound = true;
+					currentShortestPath = candidatePathLength;
+					currentDirX = -1;
+					currentDirY = 0;
+				}
+			}
+		}
+
+		if(id.x < flowBufferWidth - 1)
+		{
+			candidateCoord = coord + 1;
+			if(difficultyBuffer[candidateCoord] > 0 && pathBuffer[candidateCoord].toggle == activePath)
+			{
+				candidatePathLength = pathBuffer[candidateCoord].cost + 10 * difficultyBuffer[candidateCoord];
+				if(currentShortestPath == -1 || candidatePathLength < currentShortestPath)
+				{
+					pathFound = true;
+					currentShortestPath = candidatePathLength;
+					currentDirX = 1;
+					currentDirY = 0;
+				}
+			}
+		}
+
+
+		if(id.y < flowBufferHeight - 1)
+		{
+			if(id.x > 0)
+			{
+				candidateCoord = coord - 1 + flowBufferWidth;
+				if(difficultyBuffer[candidateCoord] > 0 && pathBuffer[candidateCoord].toggle == activePath)
+				{
+					candidatePathLength = pathBuffer[candidateCoord].cost + 14 * difficultyBuffer[candidateCoord];
+					if(currentShortestPath == -1 || candidatePathLength < currentShortestPath)
+					{
+						pathFound = true;
+						currentShortestPath = candidatePathLength;
+						currentDirX = -1;
+						currentDirY = 1;
+					}
+				}
+			}
+
+			candidateCoord = coord + flowBufferWidth;
+			if(difficultyBuffer[candidateCoord] > 0 && pathBuffer[candidateCoord].toggle == activePath)
+			{
+				candidatePathLength = pathBuffer[candidateCoord].cost + 10 * difficultyBuffer[candidateCoord];
+				if(currentShortestPath == -1 || candidatePathLength < currentShortestPath)
+				{
+					pathFound = true;
+					currentShortestPath = candidatePathLength;
+					currentDirX = 0;
+					currentDirY = 1;
+				}
+			}
+
+			if(id.x < flowBufferWidth - 1)
+			{
+				candidateCoord = coord + 1 + flowBufferWidth;
+				if(difficultyBuffer[candidateCoord] > 0 && pathBuffer[candidateCoord].toggle == activePath)
+				{
+					candidatePathLength = pathBuffer[candidateCoord].cost + 14 * difficultyBuffer[candidateCoord];
+					if(currentShortestPath == -1 || candidatePathLength < currentShortestPath)
+					{
+						pathFound = true;
+						currentShortestPath = candidatePathLength;
+						currentDirX = 1;
+						currentDirY = 1;
+					}
+				}
+			}
+		}
+
+		if(pathFound)
+		{
+			pathBuffer[coord].toggle = activePath;
+			pathBuffer[coord].xDir = currentDirX;
+			pathBuffer[coord].yDir = currentDirY;
+			pathBuffer[coord].cost = currentShortestPath;
+		}
+		else
+		{
+			InterlockedOr(unfulfilledBuffer[0], 1);
+		}
+	}
+}
