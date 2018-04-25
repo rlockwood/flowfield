@@ -32,8 +32,9 @@ uint flowCoord(uint2 coords)
 void PathSolve (uint2 id : SV_DispatchThreadID)
 {
 	uint coord = flowCoord(id);
+	bool pathFound = false;
 
-	if(difficultyBuffer[coord] > 0 && pathBuffer[coord].toggle != activePath)
+	if(difficultyBuffer[coord] > 0)
 	{
 		int currentShortestPath = -1;
 		int currentDirX = 0;
@@ -41,16 +42,20 @@ void PathSolve (uint2 id : SV_DispatchThreadID)
 
 		int candidatePathLength = 0;
 		int candidateCoord = 0;
-		bool pathFound = false;
+		int otherCoordA = 0;
+		int otherCoordB = 0;
+		
 
 		if(id.y > 0)
 		{
 			if(id.x > 0)
 			{
 				candidateCoord = coord - 1 - flowBufferWidth;
-				if(difficultyBuffer[candidateCoord] > 0 && pathBuffer[candidateCoord].toggle == activePath)
+				otherCoordA = coord - 1;
+				otherCoordB = coord - flowBufferWidth;
+				if(difficultyBuffer[candidateCoord] > 0 && difficultyBuffer[otherCoordA] > 0 && difficultyBuffer[otherCoordB] > 0 && pathBufferFrom[candidateCoord].toggle == activePath)
 				{
-					candidatePathLength = pathBuffer[candidateCoord].cost + 14 * difficultyBuffer[candidateCoord];
+					candidatePathLength = pathBufferFrom[candidateCoord].cost + 14 * difficultyBuffer[candidateCoord];
 					if(currentShortestPath == -1 || candidatePathLength < currentShortestPath)
 					{
 						pathFound = true;
@@ -62,9 +67,9 @@ void PathSolve (uint2 id : SV_DispatchThreadID)
 			}
 
 			candidateCoord = coord - flowBufferWidth;
-			if(difficultyBuffer[candidateCoord] > 0 && pathBuffer[candidateCoord].toggle == activePath)
+			if(difficultyBuffer[candidateCoord] > 0 && pathBufferFrom[candidateCoord].toggle == activePath)
 			{
-				candidatePathLength = pathBuffer[candidateCoord].cost + 10 * difficultyBuffer[candidateCoord];
+				candidatePathLength = pathBufferFrom[candidateCoord].cost + 10 * difficultyBuffer[candidateCoord];
 				if(currentShortestPath == -1 || candidatePathLength < currentShortestPath)
 				{
 					pathFound = true;
@@ -77,9 +82,11 @@ void PathSolve (uint2 id : SV_DispatchThreadID)
 			if(id.x < flowBufferWidth - 1)
 			{
 				candidateCoord = coord + 1 - flowBufferWidth;
-				if(difficultyBuffer[candidateCoord] > 0 && pathBuffer[candidateCoord].toggle == activePath)
+				otherCoordA = coord + 1;
+				otherCoordB = coord - flowBufferWidth;
+				if(difficultyBuffer[candidateCoord] > 0 && difficultyBuffer[otherCoordA] > 0 && difficultyBuffer[otherCoordB] > 0 && pathBufferFrom[candidateCoord].toggle == activePath)
 				{
-					candidatePathLength = pathBuffer[candidateCoord].cost + 14 * difficultyBuffer[candidateCoord];
+					candidatePathLength = pathBufferFrom[candidateCoord].cost + 14 * difficultyBuffer[candidateCoord];
 					if(currentShortestPath == -1 || candidatePathLength < currentShortestPath)
 					{
 						pathFound = true;
@@ -94,9 +101,9 @@ void PathSolve (uint2 id : SV_DispatchThreadID)
 		if(id.x > 0)
 		{
 			candidateCoord = coord - 1;
-			if(difficultyBuffer[candidateCoord] > 0 && pathBuffer[candidateCoord].toggle == activePath)
+			if(difficultyBuffer[candidateCoord] > 0 && pathBufferFrom[candidateCoord].toggle == activePath)
 			{
-				candidatePathLength = pathBuffer[candidateCoord].cost + 10 * difficultyBuffer[candidateCoord];
+				candidatePathLength = pathBufferFrom[candidateCoord].cost + 10 * difficultyBuffer[candidateCoord];
 				if(currentShortestPath == -1 || candidatePathLength < currentShortestPath)
 				{
 					pathFound = true;
@@ -110,9 +117,9 @@ void PathSolve (uint2 id : SV_DispatchThreadID)
 		if(id.x < flowBufferWidth - 1)
 		{
 			candidateCoord = coord + 1;
-			if(difficultyBuffer[candidateCoord] > 0 && pathBuffer[candidateCoord].toggle == activePath)
+			if(difficultyBuffer[candidateCoord] > 0 && pathBufferFrom[candidateCoord].toggle == activePath)
 			{
-				candidatePathLength = pathBuffer[candidateCoord].cost + 10 * difficultyBuffer[candidateCoord];
+				candidatePathLength = pathBufferFrom[candidateCoord].cost + 10 * difficultyBuffer[candidateCoord];
 				if(currentShortestPath == -1 || candidatePathLength < currentShortestPath)
 				{
 					pathFound = true;
@@ -129,9 +136,11 @@ void PathSolve (uint2 id : SV_DispatchThreadID)
 			if(id.x > 0)
 			{
 				candidateCoord = coord - 1 + flowBufferWidth;
-				if(difficultyBuffer[candidateCoord] > 0 && pathBuffer[candidateCoord].toggle == activePath)
+				otherCoordA = coord - 1;
+				otherCoordB = coord + flowBufferWidth;
+				if(difficultyBuffer[candidateCoord] > 0 && difficultyBuffer[otherCoordA] > 0 && difficultyBuffer[otherCoordB] > 0 && pathBufferFrom[candidateCoord].toggle == activePath)
 				{
-					candidatePathLength = pathBuffer[candidateCoord].cost + 14 * difficultyBuffer[candidateCoord];
+					candidatePathLength = pathBufferFrom[candidateCoord].cost + 14 * difficultyBuffer[candidateCoord];
 					if(currentShortestPath == -1 || candidatePathLength < currentShortestPath)
 					{
 						pathFound = true;
@@ -143,9 +152,9 @@ void PathSolve (uint2 id : SV_DispatchThreadID)
 			}
 
 			candidateCoord = coord + flowBufferWidth;
-			if(difficultyBuffer[candidateCoord] > 0 && pathBuffer[candidateCoord].toggle == activePath)
+			if(difficultyBuffer[candidateCoord] > 0 && pathBufferFrom[candidateCoord].toggle == activePath)
 			{
-				candidatePathLength = pathBuffer[candidateCoord].cost + 10 * difficultyBuffer[candidateCoord];
+				candidatePathLength = pathBufferFrom[candidateCoord].cost + 10 * difficultyBuffer[candidateCoord];
 				if(currentShortestPath == -1 || candidatePathLength < currentShortestPath)
 				{
 					pathFound = true;
@@ -158,9 +167,11 @@ void PathSolve (uint2 id : SV_DispatchThreadID)
 			if(id.x < flowBufferWidth - 1)
 			{
 				candidateCoord = coord + 1 + flowBufferWidth;
-				if(difficultyBuffer[candidateCoord] > 0 && pathBuffer[candidateCoord].toggle == activePath)
+				otherCoordA = coord + 1;
+				otherCoordB = coord + flowBufferWidth;
+				if(difficultyBuffer[candidateCoord] > 0 && difficultyBuffer[otherCoordA] > 0 && difficultyBuffer[otherCoordB] > 0 && pathBufferFrom[candidateCoord].toggle == activePath)
 				{
-					candidatePathLength = pathBuffer[candidateCoord].cost + 14 * difficultyBuffer[candidateCoord];
+					candidatePathLength = pathBufferFrom[candidateCoord].cost + 14 * difficultyBuffer[candidateCoord];
 					if(currentShortestPath == -1 || candidatePathLength < currentShortestPath)
 					{
 						pathFound = true;
@@ -172,16 +183,22 @@ void PathSolve (uint2 id : SV_DispatchThreadID)
 			}
 		}
 
-		if(pathFound)
+		if(pathFound && (pathBufferFrom[coord].toggle != activePath || currentShortestPath < pathBufferFrom[coord].cost))
 		{
-			pathBuffer[coord].toggle = activePath;
-			pathBuffer[coord].xDir = currentDirX;
-			pathBuffer[coord].yDir = currentDirY;
-			pathBuffer[coord].cost = currentShortestPath;
+			pathBufferTo[coord].toggle = activePath;
+			pathBufferTo[coord].xDir = currentDirX;
+			pathBufferTo[coord].yDir = currentDirY;
+			pathBufferTo[coord].cost = currentShortestPath;
+			InterlockedOr(unfulfilledBuffer[0], 1);
 		}
 		else
 		{
-			InterlockedOr(unfulfilledBuffer[0], 1);
+			pathBufferTo[coord] = pathBufferFrom[coord];
 		}
+	}
+	else
+	{
+		pathBufferTo[coord] = pathBufferFrom[coord];
+		pathBufferTo[coord].toggle = activePath;
 	}
 }
