@@ -127,7 +127,7 @@ public class FlowFieldSolver : MonoBehaviour {
         SetupPath();
         SetupUnfulfilled();
 
-        //NewDest(15, 3);
+        NewDest(32, 32);
     }
 
     private void SetupHandles()
@@ -339,4 +339,12 @@ public class FlowFieldSolver : MonoBehaviour {
             }
         }
 	}
+
+    private void OnApplicationQuit()
+    {
+        difficultyBuffer.Release();
+        pathBufferA.Release();
+        pathBufferB.Release();
+        unfulfilledBuffer.Release();
+    }
 }

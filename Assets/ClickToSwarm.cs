@@ -25,12 +25,12 @@ public class ClickToSwarm : MonoBehaviour {
 	void Update () {
 		if(Input.GetMouseButtonUp(0))
         {
-            Debug.Log("A");
+            //Debug.Log("A");
             ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
             if(Physics.Raycast(ray, out hit, 100.0f))
             {
-                Debug.Log("hit " + hit.collider.gameObject.name);
+                //Debug.Log("hit " + hit.collider.gameObject.name);
                 //if(hit.collider.gameObject == field)
                 //{
                     Debug.Log((int)hit.point.x + ", " + (int)hit.point.z);
@@ -42,7 +42,7 @@ public class ClickToSwarm : MonoBehaviour {
 
         if(Input.GetMouseButtonDown(1))
         {
-            Debug.Log("B");
+            //Debug.Log("B");
             edits = new Dictionary<Vector2Int, bool>();
             ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
@@ -50,7 +50,7 @@ public class ClickToSwarm : MonoBehaviour {
             {
                 //if (hit.collider.gameObject == field)
                 //{
-                    Debug.Log((int)hit.point.x + ", " + (int)hit.point.z);
+                    //Debug.Log((int)hit.point.x + ", " + (int)hit.point.z);
                     drawType = ffs.GetDifficulty((int)hit.point.x, (int)hit.point.z) != 0;
                 //}
             }
@@ -58,7 +58,7 @@ public class ClickToSwarm : MonoBehaviour {
 
         if(Input.GetMouseButton(1))
         {
-            Debug.Log("C");
+            //Debug.Log("C");
 
             ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
@@ -74,9 +74,13 @@ public class ClickToSwarm : MonoBehaviour {
         
         if(Input.GetMouseButtonUp(1))
         {
-            Debug.Log("D");
+            //Debug.Log("D");
             ffs.SetDifficulty((drawType ? 0u : 1u ), new List<Vector2Int>(edits.Keys));
         }
         
+        if(Input.GetKey("escape") || Input.GetKey("q"))
+        {
+            Application.Quit();
+        }
 	}
 }
